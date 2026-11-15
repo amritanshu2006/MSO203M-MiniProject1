@@ -1,0 +1,17 @@
+# Notebook / Python
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+# LaTeX build files
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+
+# OS files
+.DS_Store
+__MACOSX/
+Thumbs.db
