@@ -1,0 +1,218 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=1.3cm,top=1.1cm,bottom=1.3cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\def\UrlBreaks{\do\*\do\+\do\,\do\-\do\(\do\)}
+
+% Compact but standard layout
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+\setlist{nosep,leftmargin=1.3em,topsep=2pt}
+\captionsetup{font=footnotesize,labelfont=bf,skip=3pt}
+\setlength{\textfloatsep}{6pt}
+\setlength{\floatsep}{6pt}
+\setlength{\intextsep}{6pt}
+\setlength{\abovedisplayskip}{3pt}\setlength{\belowdisplayskip}{3pt}
+\setlength{\abovedisplayshortskip}{2pt}\setlength{\belowdisplayshortskip}{2pt}
+\makeatletter
+\renewcommand\section{\@startsection{section}{1}{0pt}{6pt}{2pt}{\large\bfseries}}
+\renewcommand\subsection{\@startsection{subsection}{2}{0pt}{4pt}{1pt}{\normalsize\bfseries}}
+\makeatother
+
+\linespread{0.96}
+\newcommand{\pos}[1]{\left(#1\right)_+}
+
+\title{\vspace{-0.9cm}\Large\textbf{MSO203M Mini-project 1: Boundary Data for a First-Order PDE}}
+\author{Amritanshu Kumar \quad (Roll No.\ 250120) \quad Case code: 16931}
+\date{\vspace{-0.9cm}}
+
+\begin{document}
+\maketitle
+
+\section*{Assigned data and problem}
+From Step 2 of the notebook, my assigned data are: $\kappa=0.525$, $B=0.093$, $x^*=0.81$, $w=0.095$, $w_n=0.025$, $\varepsilon=0.29$, $\lambda=0.9$, $T=\log2\approx0.693147$ and $R^*=(1+x^*)^{-\kappa}=0.7323501$.
+
+The problem is to solve $u_t+(1+x)u_x=-\kappa u$ for $0<x<1$, $0<t\le T$, with $u(x,0)=0$ and $u(0,t)=g(t)$. The target is $D(x)=0.65\,b_{0.25,0.15}(x)+0.90\,b_{0.81,0.095}(x)$, where $b_{a,h}(x)=\cos^2\frac{\pi(x-a)}{2h}$ for $|x-a|<h$ and $0$ otherwise. I have to choose an admissible $g$ (continuous, piecewise $C^1$, $g(0)=g(T)=0$, $0\le g\le1$, $\int_0^Tg\le B$) such that $E(g)=\max_{0\le x\le1}|u_g(x,T)-D(x)|\le\varepsilon$.
+
+\textbf{Main results in short.} Exact reproduction of $D$ is not possible, because it would need $\max g=1.229>1$ and $\int g\approx0.152>B$. My chosen $g$ gives $E(g)=0.26$ \emph{exactly}, with $\max g=0.885$ and $\int g\le0.0862$. For the narrower target I use $g_n$, which gives $E(g_n)=0.26$ and $\int g_n\le0.0682$.
+
+%==============================================================
+\section*{Part A: Characteristic solution}
+\subsection*{A1. Characteristic equations and solution formula}
+Along a characteristic, I write $X(r,s)$, $T(r,s)$ and $V(r,s)=u(X,T)$. Here $s$ labels the starting point on a data curve, and $r$ is the time elapsed from that point ($r=0$ at the start). By the chain rule, $V_r=u_tT_r+u_xX_r$, and this is the left side of the PDE when
+\[
+X_r=1+X,\qquad T_r=1,\qquad V_r=-\kappa V
+\quad\Longrightarrow\quad 1+X=(1+X(0))\,e^{r},\quad T=T(0)+r,\quad V=V(0)\,e^{-\kappa r}.
+\]
+\textbf{Family 1 (starting from the initial line $(s,0)$, $0\le s\le1$).} Here $X=(1+s)e^r-1$, $T=r$ and $V=e^{-\kappa r}u(s,0)=0$. At a point $(x,t)$ this gives $r=t$ and $s=(1+x)e^{-t}-1$. This is a valid starting point ($s\ge0$) only if $x\ge e^t-1$.
+
+\textbf{Family 2 (starting from the boundary $(0,s)$, where $s$ is the time of leaving $x=0$).} Here $X=e^r-1$, $T=s+r$ and $V=e^{-\kappa r}g(s)$. At $(x,t)$ this gives $r=\log(1+x)$, which is the travel time from $x=0$ to $x$, and $s=t-\log(1+x)$. This is valid only if $x\le e^t-1$. Since $e^{-\kappa\log(1+x)}=(1+x)^{-\kappa}$, the solution is
+\begin{equation}
+u_g(x,t)=\begin{cases}0, & x\ge e^t-1 \quad\text{(region fixed by the initial data)},\\[1pt]
+(1+x)^{-\kappa}\,g\bigl(t-\log(1+x)\bigr), & x<e^t-1\quad\text{(region fixed by the boundary data)}.\end{cases}
+\label{eq:sol}
+\end{equation}
+In simple words, the value at $(x,t)$ is the boundary value that left $x=0$ at time $t-\log(1+x)$, reduced by the factor $(1+x)^{-\kappa}$ during the trip. The two regions are separated by the characteristic from the corner $(0,0)$, which is $x=e^t-1$. On this curve both formulas give $0$ because $g(0)=0$. So $u_g$ is continuous, and it is piecewise $C^1$ whenever $g$ is.
+
+\textbf{Why no condition is needed at $x=1$.} The speed is $1+x\ge1>0$, so every characteristic moves to the right and goes \emph{out} through $x=1$; no characteristic enters there. If I trace any point $(x,t)$ backwards, I always reach either $t=0$ or $x=0$, where data are given. So the value $u(1,t)$ is already fixed by the PDE: $u(1,t)=0$ for $t<\log2$, and $u(1,T)=2^{-\kappa}g(0)=0$. An extra condition at $x=1$ would either repeat this information or contradict it.
+
+\subsection*{A2. Sketch and dependence on $g$}
+\begin{figure}[!htb]
+\centering
+\begin{minipage}[c]{0.44\textwidth}
+\includegraphics[width=\textwidth]{partA_characteristics.png}
+\captionof{figure}{Characteristics in the $(x,t)$ plane. Purple curves leave the boundary ($x=e^{t-s}-1$), grey ones start on the initial line, and the bold curve $x=e^t-1$ splits the two regions.}
+\label{fig:char}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.53\textwidth}
+\small
+\textbf{At $t_0=0.45$:} only the positions $0\le x<e^{0.45}-1\approx0.568$ can depend on $g$. For $0.568\le x\le1$, $u(x,0.45)=0$ for \emph{every} $g$, since the information from the boundary has not reached there yet.
+
+\textbf{At $T=\log2$:} the boundary region is $x<e^{\log2}-1=1$, so \emph{every} interior position depends on $g$. The corner characteristic reaches $x=1$ exactly at time $T$. The final profile is
+\[
+u_g(x,T)=(1+x)^{-\kappa}\,g\!\left(\log\tfrac{2}{1+x}\right),\quad 0\le x\le1 .
+\]
+So each position reads $g$ at exactly one time, $s=\log\frac{2}{1+x}$, with $x=1\leftrightarrow s=0$ and $x=0\leftrightarrow s=T$. The peak at $x^*=0.81$ is controlled by $g$ near $s^*=\log\frac{2}{1.81}=0.0998$, and the peak at $0.25$ by $g$ near $s=0.470$.
+\end{minipage}
+\end{figure}
+
+%==============================================================
+\section*{Part B: Choice of boundary data}
+\subsection*{B1. Exact reproduction is not possible}
+If I put $x=2e^{-s}-1$ (so that $1+x=2e^{-s}$) into the final-profile formula, then $u_g(\cdot,T)=D$ holds if and only if
+$g_D(s)=(2e^{-s})^{\kappa}D(2e^{-s}-1)$ for $0\le s\le T$.
+This $g_D$ is continuous, and $g_D(0)=g_D(T)=0$ because $D(0)=D(1)=0$. But it breaks two of the restrictions:
+\begin{itemize}
+\item \textbf{Upper bound $g\le1$.} At $s^*$, $g_D(s^*)=0.9\,(1.81)^{0.525}=0.9/R^*=1.229>1$. In fact, for \emph{every} admissible $g$, $u_g(x^*,T)=R^*g(s^*)\le R^*=0.7324<0.9=D(x^*)$, so $E(g)\ge0.9-R^*=0.1676>0$. Because of the damping along the characteristic, even $g=1$ cannot reach the height of the peak, so exact reproduction is impossible. The argument at the single position $x^*$ is enough here.
+\item \textbf{Budget.} Changing the variable from $s$ to $x$, with $ds=-dx/(1+x)$, gives $\int_0^Tg\,ds=\int_0^1(1+x)^{\kappa-1}H(x)\,dx$, where $H=u_g(\cdot,T)$. Since $(1+x)^{\kappa-1}\ge2^{-0.475}$ and $\int b_{a,h}=h$, I get $\int_0^Tg_D\ge2^{-0.475}(0.65\cdot0.15+0.9\cdot0.095)=0.132>B$. The numerical value is $0.1523$.
+\end{itemize}
+
+\subsection*{B2. Construction of $g$}
+\textbf{Approach: first choose the final profile $H$, then find $g$ from it.} Every admissible $g$ corresponds to a final profile $H(x)=u_g(x,T)$ through $g(s)=(2e^{-s})^{\kappa}H(2e^{-s}-1)$. So the restrictions on $g$ become conditions on $H$: $H\ge0$; $H(0)=H(1)=0$; $(1+x)^{\kappa}H(x)\le1$ (upper bound); $\int_0^1(1+x)^{\kappa-1}H\,dx\le B$ (budget, where the weight is about $0.90$ on the first peak and about $0.75$ on the second); and $|H-D|\le\varepsilon$ (tolerance). I compared three options, shown in Table~\ref{tab:cand}.
+
+\begin{table}[!htb]
+\centering\small
+\caption{Candidate final profiles that I compared.}
+\label{tab:cand}
+\begin{tabular}{@{}p{4.5cm}p{2.0cm}p{1.2cm}p{1.4cm}p{6.3cm}@{}}
+\toprule
+Final profile $H$ & $E(g)$ & $\max g$ & $\int g$ (est.) & Result\\\midrule
+(i) uniform scaling $\alpha D$ & $0.9(1-\alpha)$ & $1.229\alpha$ & $0.152\alpha$ & \textbf{fails}: the tolerance needs $\alpha\ge0.678$, but the budget needs $\alpha\le0.611$\\
+(ii) shift and clip $\pos{D-0.25}$ & $0.25$ & $0.888$ & $0.0757$ & valid, but it makes both peaks narrower ($\delta_{400}=0.255$)\\
+(iii) \textbf{chosen:} clip peak 1, scale peak 2 & $0.26$ & $0.885$ & $0.0837$ & valid; peak 2 keeps its full width ($\delta_{400}=0.199$)\\\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Why I chose option (iii).} The upper bound only affects peak 2, and peak 2 is also the one that the numerical method resolves worst. So I keep it smooth and at full width by \emph{scaling} it by $0.72$. To stay within the budget, I cut mainly from peak 1, where each unit of height costs the most area (weight $\approx0.9$), by \emph{shifting it down by $0.26$ and clipping at zero}. Let $\beta_1=0.65\,b_{0.25,0.15}$ and $\beta_2=0.90\,b_{0.81,0.095}$, so that $D=\beta_1+\beta_2$, with separate supports $[0.1,0.4]$ and $[0.715,0.905]$. My choice is
+\begin{equation}
+\begin{aligned}H(x)&=\pos{\beta_1(x)-0.26}+0.72\,\beta_2(x),\\
+g(t)&=(2e^{-t})^{\kappa}\Bigl[\pos{0.65\,b_{0.25,0.15}(2e^{-t}-1)-0.26}+0.648\,b_{0.81,0.095}(2e^{-t}-1)\Bigr],\quad 0\le t\le T.\end{aligned}
+\label{eq:g}
+\end{equation}
+Notebook input (Step 3): {\small\url{(2*exp(-t))^kappa*(pos(0.65*bump(2*exp(-t)-1,0.25,0.15)-0.26)+0.72*0.9*bump(2*exp(-t)-1,xstar,w))}}
+
+\textbf{Exact error.} At $t=T$, the time $s=\log\frac{2}{1+x}$ gives $2e^{-s}=1+x$. So $u_g(x,T)=(1+x)^{-\kappa}(1+x)^{\kappa}H(x)=H(x)$ \emph{for every} $x\in[0,1]$. On $[0.1,0.4]$: if $\beta_1\ge0.26$ then $|H-D|=0.26$, and otherwise $|H-D|=\beta_1<0.26$. On $[0.715,0.905]$: $|H-D|=0.28\,\beta_2\le0.28\cdot0.9=0.252$. Everywhere else $H=D=0$. Therefore $E(g)=0.26\le\varepsilon=0.29$ exactly, and the maximum is reached on the flat top of peak 1. This is a proof over the whole interval, not an estimate from samples.
+
+\textbf{Checking the restrictions.}
+\begin{itemize}
+\item \emph{End values:} $g(0)$ uses $x=1$ and $g(T)$ uses $x=0$. Both points are outside the supports of $\beta_1$ and $\beta_2$, so $g(0)=g(T)=0$.
+\item \emph{Sign:} $g$ is a positive factor times $\pos{\cdot}\ge0$ plus $0.648\,b\ge0$, so $\min g=0$.
+\item \emph{Upper bound:} $(1+x)^{\kappa}$ is increasing. In the first part, $H>0$ only for $x\in(0.1654,0.3346)$ (where $\cos^2=0.4$), so $g\le(1.3346)^{\kappa}(0.65-0.26)=0.454$. In the second part, $g\le(1.905)^{\kappa}(0.648)=0.909<1$. The notebook estimate is $\max g=0.8849$.
+\item \emph{Integral:} I bound the weight $(1+x)^{\kappa-1}$ by its value at the left end of each support. I also use $\int b_{a,h}=h$ and the formula $\int_{-h}^{h}\pos{A\cos^2\tfrac{\pi y}{2h}-c}dy=h\bigl[(A-2c)z_1+\tfrac{A}{\pi}\sin\pi z_1\bigr]$ with $\cos^2\frac{\pi z_1}{2}=\frac{c}{A}$, which equals $0.04141$ here. This gives
+$\int_0^Tg\le(1.1654)^{-0.475}(0.04141)+(1.715)^{-0.475}(0.648)(0.095)=0.0385+0.0476=0.0862\le B=0.093$. The notebook estimate is $0.08370$.
+\item \emph{Continuity and piecewise $C^1$:} $b_{a,h}$ is $C^1$, because its derivative $-\frac{\pi}{2h}\sin\frac{\pi(x-a)}{h}$ is zero at $|x-a|=h$. The maps $t\mapsto2e^{-t}-1$ and $(2e^{-t})^{\kappa}$ are smooth. The function $\pos{\cdot}$ is continuous and has a corner only where $\beta_1=0.26$. So $g$ is continuous and piecewise $C^1$, with exactly two corners at $t=0.4045$ and $t=0.5401$ and no jumps. The second pulse ($t\in(0.0487,0.1537)$) is fully $C^1$.
+\end{itemize}
+The checks printed by notebook Step 3 (only supporting estimates) are: $g(0)=g(T)=0$, $\min=0$, $\max=0.8849$, $\int g=0.08370$ and $E=0.260000$. The change on doubling the checking grid is $2\times10^{-9}$.
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=0.78\textwidth]{figB_design.png}
+\caption{(a) The exact-reproduction data $g_D$ go above the upper bound and use about $1.6\times$ the budget, while my chosen $g$ stays below $1$. The dashed curve is $g_n$ from Part D. (b) The exact final profile $H$ from my choice stays inside the band $D\pm\varepsilon$ everywhere. Uniform scaling with the largest affordable $\alpha=0.61$ leaves the band at $x^*$.}
+\label{fig:design}
+\end{figure}
+
+%==============================================================
+\section*{Part C: The supplied numerical method}
+\subsection*{C1. Update rule and positivity}
+With $x_j=jh$, $h=1/N$ and $t_n=n\Delta t$, the scheme uses a \emph{forward difference in time} for $u_t$ and a \emph{backward difference in space} for $u_x$: $\frac{U_j^{n+1}-U_j^n}{\Delta t}+(1+x_j)\frac{U_j^n-U_{j-1}^n}{h}=-\kappa U_j^n$. The backward difference is the \emph{upwind} choice, because the speed $1+x>0$ carries information from left to right, just like the characteristics in Part A. Solving for $U_j^{n+1}$ gives
+\begin{equation}
+U_j^{n+1}=(1-\kappa\Delta t-\lambda_j)\,U_j^n+\lambda_j\,U_{j-1}^n,\qquad \lambda_j=\frac{(1+x_j)\Delta t}{h}\ge0 .
+\end{equation}
+Since $1+x_j\le2$, we have $\kappa\Delta t+\lambda_j\le\Delta t(\kappa+2/h)\le0.8$, because of the choice $M=\lceil T(\kappa+2N)/0.8\rceil$, $\Delta t=T/M$. So the first coefficient is at least $0.2>0$; numerically, its minimum is $0.20$ on all grids. This means each new value is a combination, with nonnegative weights, of nonnegative old values. Starting from $U_j^0=0$ and $U_0^n=g(t_n)\ge0$, induction on $n$ gives $U_j^n\ge0$ everywhere. Also, the coefficients add up to $1-\kappa\Delta t\le1$, so $U_j^n\le\max g\le1$ and there is no overshoot. Positivity is a stability property; by itself, it does not make the scheme accurate.
+
+\subsection*{C2. Results for the original target and the effect of refinement}
+\textbf{Why $E_{\mathrm{comp},N}\le E(g)+\delta_N$.} For each $x$, the triangle inequality gives $|\tilde U_N(x)-D(x)|\le|\tilde U_N(x)-u_g(x,T)|+|u_g(x,T)-D(x)|\le\delta_N+E(g)$. Taking the maximum over $x$ gives the result. $E(g)$ depends only on the exact solution, so it is the same on every grid; refining the grid can only reduce $\delta_N$.
+
+\begin{table}[!htb]
+\centering\small
+\caption{Numerical results from notebook Steps 3--4. All maxima and integrals are numerical estimates (10\,001/20\,001 evaluation points plus target centres and nodes; largest change $\le6\times10^{-6}$). I computed the last two columns with the supplied \texttt{evolve} on the same grids.}
+\label{tab:results}
+\begin{tabular}{@{}lcrrcccccc@{}}
+\toprule
+Target & $\int g$ (est.) & $N$ & $M$ & $E(g)$ & $\delta_N$ & $E_{\mathrm{comp},N}$ & peak at $x^*$ (comp./exact) & nodes on peak 2\\\midrule
+original, $w=0.095$ & 0.08370 & 100 & 174 & 0.2600 & 0.3759 & 0.6277 & 0.275 / 0.648 & 19\\
+ &  & 200 & 348 & 0.2600 & 0.2893 & 0.5412 & 0.360 / 0.648 & 38\\
+ &  & 400 & 694 & 0.2600 & 0.1988 & 0.4507 & 0.450 / 0.648 & 76\\\midrule
+narrow, $w_n=0.025$ & 0.06487 & 100 & 174 & 0.2600 & 0.5711 & 0.8231 & 0.078 / 0.648 & 5\\
+ &  & 400 & 694 & 0.2600 & 0.4961 & 0.7481 & 0.153 / 0.648 & 20\\\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[!htb]
+\centering
+\begin{subfigure}{0.36\textwidth}\includegraphics[width=\textwidth]{original_right.png}\caption{Original target (Step 3), $N=100,200,400$.}\end{subfigure}\hspace{0.05\textwidth}
+\begin{subfigure}{0.36\textwidth}\includegraphics[width=\textwidth]{narrow_right.png}\caption{Narrower target (Step 4), $N=100,400$.}\end{subfigure}
+\caption{Notebook output: the target, the exact final profile and the computed curves. The full notebook figures, which also show $g$ and $g_n$, are in the results ZIP.}
+\label{fig:nb}
+\end{figure}
+
+\textbf{What I observed.}
+\begin{itemize}
+\item \emph{Refining the grid helps, but slowly.} $\delta_N$ goes down from $0.376$ to $0.289$ to $0.199$. That is about $23\%$ and $31\%$ for each halving of $h$, which is less than the $50\%$ expected from a first-order method in its asymptotic regime. Extra runs with the same solver (Figure~\ref{fig:ref}a) give $0.122$ for $N=800$ and $0.068$ for $N=1600$. The rate gets close to first order only on fine grids; for $N\le400$ the peaks are not yet well resolved.
+\item \emph{Most of the error comes from smearing of peak 2.} The computed peak at $x^*$ is $0.275$, $0.360$ and $0.450$, while the exact value is $0.648$. Peak 1 is closer: $0.293$, $0.335$ and $0.361$ against $0.390$. The update replaces $U_j$ by a weighted average of $U_j$ and $U_{j-1}$, which acts like numerical diffusion $\approx\frac h2(1+x)(1-\lambda_j)u_{xx}$. This lowers and widens the peaks. Peak 2 leaves the boundary early ($t\approx0.05$--$0.15$) as a pulse only about $0.1$ wide, and it is averaged during the whole trip of length $\log1.81=0.59$. Peak 1 starts at $t\approx0.40$ and travels for only $0.22$.
+\item \emph{Where the errors occur.} $E(g)=0.26$ is reached on peak 1, but $\delta_N$ is largest near $x\approx0.81$, where $|u_g-D|=0.252$. Since the two maxima occur at different positions, the bound is strict: $E_{\mathrm{comp},N}\approx0.252+\delta_N<E(g)+\delta_N$. The computed target error is larger than $\varepsilon$ only because of the numerical error; the exact design itself meets the tolerance.
+\item \emph{The design affects the numerics.} When $g$ is fixed, refinement never changes $E(g)$. But keeping peak 2 wide reduced $\delta_{400}$ from $0.255$ (option (ii)) to $0.199$ (Figure~\ref{fig:ref}a).
+\end{itemize}
+
+%==============================================================
+\section*{Part D: Narrower target}
+\subsection*{D1. Prediction and construction}
+\emph{My prediction (made before running Step 4).} With $w_n=0.025$, the second peak still has the same height, so the problem with the upper bound at $x^*$ stays the same ($R^*$ does not depend on $w$). However, the matching boundary pulse becomes about $4\times$ shorter in time. So the required area becomes smaller, and the budget should no longer be the main restriction. Since $E$ is decided by the design, it does not need to change. On the numerical side, the narrow peak is covered by only a few nodes and gets smeared much more by the averaging. So I expected $\delta_N$ to be larger and to improve less with refinement.
+
+\emph{Construction.} Since the budget is now less tight, I do not need clipping; I simply scale each peak, which gives a boundary function that is $C^1$ everywhere. With $D_n=\beta_1+0.9\,b_{0.81,0.025}$, my choice is
+\begin{equation}
+\begin{aligned}H_n&=0.6\,\beta_1+0.72\cdot0.9\,b_{0.81,0.025},\\ g_n(t)&=(2e^{-t})^{\kappa}\bigl[0.39\,b_{0.25,0.15}(2e^{-t}-1)+0.648\,b_{0.81,0.025}(2e^{-t}-1)\bigr],\quad0\le t\le T.\end{aligned}
+\end{equation}
+Notebook input (Step 4, where \texttt{w} means $w_n$): {\small\url{(2*exp(-t))^kappa*(0.6*0.65*bump(2*exp(-t)-1,0.25,0.15)+0.72*0.9*bump(2*exp(-t)-1,xstar,w))}}.
+
+\emph{Checks.} As in B2, $u_{g_n}(x,T)=H_n(x)$ for all $x$, so $E(g_n)=\max(0.4\cdot0.65,\,0.28\cdot0.9)=0.26\le0.29$ exactly. Also $g_n(0)=g_n(T)=0$ and $g_n\ge0$. For the maximum, $\max g_n\le\max\{(1.4)^{\kappa}0.39,\,(1.835)^{\kappa}0.648\}=0.891\le1$ (estimate $0.8848$). For the integral, $\int g_n\le(1.1)^{-0.475}(0.39)(0.15)+(1.785)^{-0.475}(0.648)(0.025)=0.0682\le B$ (estimate $0.06487$). Finally, $g_n$ is $C^1$, with no corners and no jumps.
+
+\subsection*{D2. Comparison with the original target}
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=0.70\textwidth]{figC_refinement.png}
+\caption{(a) $\delta_N$ against $N$ on a log--log scale, including extra runs for $N=50,800,1600$ with the supplied solver; the vertical lines mark the required grids. (b) Exact and computed ($N=400$, dots are nodes) final profiles near $x^*$ for both targets.}
+\label{fig:ref}
+\end{figure}
+\begin{itemize}
+\item \emph{Integral and exact error.} $\int g$ drops from $0.0837$ to $0.0649$. The second pulse of $g_n$ lasts only for $t\in(0.086,0.114)$, compared with $(0.049,0.154)$ before. $E=0.26$ for both targets, as I predicted, so the exact design is equally good in both cases.
+\item \emph{Numerical error.} $\delta_{100}=0.571$ (compared with $0.376$) and $\delta_{400}=0.496$ (compared with $0.199$). Going from $N=100$ to $400$ improves it by only $13\%$, while for the original target it improved by $47\%$. Even at $N=1600$, $\delta_N$ is still $0.363$ (Figure~\ref{fig:ref}a).
+\item \emph{Explanation using grid points.} Peak 2 of $H_n$ lies in $(0.785,0.835)$, which contains only 5 nodes at $N=100$ and 20 at $N=400$, compared with 19 and 76 for the original target. Where the pulse enters at $x\approx0$, it is only about $0.03$ wide, which is about 3 cells at $N=100$. The upwind averaging spreads it over many cells, so the computed peak is only $0.078$ ($N=100$) and $0.153$ ($N=400$), while the exact value is $0.648$ (Figure~\ref{fig:ref}b). At $N=400$ the narrow peak has about as many nodes as the original peak has at $N=100$, and it is resolved no better.
+\item \emph{Prediction compared with results.} The results agree with my prediction. What surprised me is how large the effect is: even refining up to $N=1600$ still leaves $\delta_N>\varepsilon$. A narrow feature needs a much finer grid, or a less diffusive (higher-order) scheme. Peak 1, which is wide and not clipped in $g_n$, is resolved better than before ($0.372$ against the exact $0.390$ at $N=400$).
+\end{itemize}
+
+%==============================================================
+\section*{Conclusions}
+The method of characteristics turns the design problem into choosing the final profile: $u_g(x,T)=H(x)$ exactly when $g(s)=(2e^{-s})^{\kappa}H(2e^{-s}-1)$. The damping $(1+x)^{-\kappa}$ together with $g\le1$ forces $E\ge0.168$, and the budget also rules out exact reproduction. My per-peak design satisfies every restriction with $E=0.26\le0.29$, proved for all $x$. The supplied upwind scheme is positive and stable but diffusive, so the computed curves underestimate narrow peaks. This numerical error, and not the design, is the reason why $E_{\mathrm{comp},N}>\varepsilon$.
+
+\textbf{Reproducibility.} All results come from the supplied notebook (edition 2026-10-30) with roll number 250120 and the two formulas given above. The results ZIP contains the same data, formulas, CSV file and figures. Figures~\ref{fig:char}, \ref{fig:design} and \ref{fig:ref} use the supplied functions (\texttt{exact\_solution}, \texttt{evolve}) with the same inputs.
+
+\textbf{AI acknowledgement.} I used Claude (Anthropic) to help derive the characteristic solution, compare candidate boundary functions (uniform scaling, shift-and-clip, per-peak design), compute the analytic bounds and draft this report. I checked the work by re-deriving the solution formula by hand, verifying $u_g(x,T)=H(x)$ by substitution, recomputing the maximum and integral bounds, and running the supplied notebook myself in Colab with my roll number. Its printed checks ($\max g=0.8849$, $\int g=0.0837$, $E=0.26$) and error table agree with this report.
+
+\end{document}
